@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Sur Gestión">
+<meta name="theme-color" content="#0f1117">
+<title>Sur Gestión</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.47.0/tabler-icons.min.css">
+<style>
+:root {
+  --bg: #0f1117;
+  --bg2: #171a22;
+  --bg3: #1e2130;
+  --bg4: #252840;
+  --border: rgba(255,255,255,0.08);
+  --border2: rgba(255,255,255,0.14);
+  --text: #f0f2f7;
+  --text2: #8b90a8;
+  --text3: #555a72;
+  --accent: #4f7cf7;
+  --accent-dim: rgba(79,124,247,0.15);
+  --green: #2ecc8a;
+  --green-dim: rgba(46,204,138,0.12);
+  --amber: #f5a623;
+  --amber-dim: rgba(245,166,35,0.12);
+  --red: #f05656;
+  --red-dim: rgba(240,86,86,0.12);
+  --teal: #3ecfcf;
+  --teal-dim: rgba(62,207,207,0.1);
+  --radius: 12px;
+  --radius-sm: 8px;
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+html, body { height: 100%; overflow: hidden; background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 15px; }
+
+/* Layout */
+#app { height: 100dvh; display: flex; flex-direction: column; }
+#top-bar { padding: 14px 16px 10px; padding-top: calc(14px + env(safe-area-inset-top, 0px)); background: var(--bg); border-bottom: 0.5px solid var(--border); display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+#top-bar .logo { width: 30px; height: 30px; background: var(--accent); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 500; color: #fff; flex-shrink: 0; }
+#top-bar h1 { font-size: 15px; font-weight: 500; color: var(--text); flex: 1; }
+#top-bar .date-badge { font-size: 11px; color: var(--text3); font-family: 'DM Mono', monospace; }
+#content { flex: 1; overflow: hidden; position: relative; }
+.view { position: absolute; inset: 0; overflow-y: auto; display: none; -webkit-overflow-scrolling: touch; }
+.view.active { display: block; }
+#bottom-nav { display: flex; background: var(--bg); border-top: 0.5px solid var(--border); padding-bottom: calc(8px + var(--safe-bottom)); flex-shrink: 0; }
+.nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 10px 4px 6px; cursor: pointer; color: var(--text3); transition: color .2s; font-size: 10px; font-weight: 500; border: none; background: none; }
+.nav-item i { font-size: 20px; }
+.nav-item.active { color: var(--accent); }
+
+/* Stats */
+.stats-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; padding: 14px 16px 8px; }
+.stat-card { background: var(--bg2); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 14px; }
+.stat-num { font-size: 28px; font-weight: 300; line-height: 1; margin-bottom: 4px; }
+.stat-lbl { font-size: 11px; color: var(--text2); }
+.stat-num.red { color: var(--red); }
+.stat-num.amber { color: var(--amber); }
+.stat-num.green { color: var(--green); }
+.stat-num.accent { color: var(--accent); }
+
+/* Section */
+.section-pad { padding: 0 16px 100px; }
+.section-title { font-size: 11px; font-weight: 500; letter-spacing: .08em; text-transform: uppercase; color: var(--text3); margin: 14px 0 8px; display: flex; align-items: center; gap: 6px; }
+.section-title::after { content:''; flex:1; height: 0.5px; background: var(--border); }
+
+/* Filter chips */
+.chips { display: flex; gap: 6px; padding: 0 16px 10px; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+.chips::-webkit-scrollbar { display: none; }
+.chip { flex-shrink: 0; padding: 5px 12px; border-radius: 20px; font-size: 12px; font-weight: 500; border: 0.5px solid var(--border); color: var(--text2); background: var(--bg2); cursor: pointer; transition: .15s; white-space: nowrap; }
+.chip.active { background: var(--accent-dim); color: var(--accent); border-color: var(--accent); }
+
+/* Item cards */
+.item { background: var(--bg2); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 13px 14px; margin-bottom: 8px; position: relative; transition: border-color .15s; }
+.item:active { border-color: var(--border2); }
+.item.done { opacity: .4; }
+.item.done .item-title { text-decoration: line-through; }
+.item-title { font-size: 14px; font-weight: 400; color: var(--text); line-height: 1.4; margin-bottom: 7px; padding-right: 28px; }
+.item-meta { display: flex; flex-wrap: wrap; gap: 5px; align-items: center; }
+.badge { font-size: 10px; font-weight: 500; padding: 2px 7px; border-radius: 6px; }
+.b-own { background: var(--accent-dim); color: var(--accent); }
+.b-others { background: var(--amber-dim); color: var(--amber); }
+.b-project { background: var(--teal-dim); color: var(--teal); }
+.b-kpi { background: rgba(150,100,250,0.12); color: #b08af7; }
+.b-alta { background: var(--red-dim); color: var(--red); }
+.b-media { background: var(--amber-dim); color: var(--amber); }
+.b-baja { background: var(--green-dim); color: var(--green); }
+.b-done { background: rgba(255,255,255,0.05); color: var(--text3); }
+.b-event { background: var(--teal-dim); color: var(--teal); }
+.item-date { font-size: 11px; color: var(--text3); font-family: 'DM Mono', monospace; }
+.item-date.overdue { color: var(--red); }
+.item-resp { font-size: 11px; color: var(--text2); }
+.check-circle { position: absolute; top: 13px; right: 12px; width: 20px; height: 20px; border: 1.5px solid var(--border2); border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: .15s; }
+.check-circle.done { background: var(--green-dim); border-color: var(--green); }
+.del-item { position: absolute; bottom: 10px; right: 12px; font-size: 11px; color: var(--text3); cursor: pointer; opacity: 0; transition: .15s; }
+.item:hover .del-item { opacity: 1; }
+.linked-chips { margin-top: 6px; display: flex; flex-wrap: wrap; gap: 4px; }
+.ev-chip { font-size: 10px; padding: 2px 7px; border-radius: 6px; background: var(--teal-dim); color: var(--teal); border: 0.5px solid rgba(62,207,207,0.2); }
+.empty { text-align: center; padding: 40px 20px; color: var(--text3); font-size: 13px; }
+.empty i { font-size: 32px; display: block; margin-bottom: 8px; opacity: .4; }
+
+/* Event cards */
+.event-card { background: var(--bg2); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 13px 14px; margin-bottom: 8px; cursor: pointer; transition: border-color .15s; }
+.event-card.today-ev { border-left: 2.5px solid var(--green); }
+.event-card.tomorrow-ev { border-left: 2.5px solid var(--accent); }
+.event-title { font-size: 14px; font-weight: 500; color: var(--text); margin-bottom: 5px; padding-right: 70px; }
+.event-time { font-size: 12px; color: var(--text2); font-family: 'DM Mono', monospace; }
+.pending-badge { position: absolute; top: 13px; right: 12px; font-size: 10px; font-weight: 500; padding: 3px 8px; border-radius: 6px; }
+.pb-warn { background: var(--red-dim); color: var(--red); }
+.pb-ok { background: var(--green-dim); color: var(--green); }
+.event-body { display: none; margin-top: 10px; border-top: 0.5px solid var(--border); padding-top: 10px; }
+.event-card.open .event-body { display: block; }
+.pending-row { display: flex; gap: 7px; align-items: flex-start; padding: 4px 0; font-size: 12px; color: var(--text2); line-height: 1.4; }
+.day-sep { font-size: 10px; font-weight: 500; letter-spacing: .08em; text-transform: uppercase; color: var(--text3); margin: 14px 0 8px; display: flex; align-items: center; gap: 6px; }
+.day-sep::after { content:''; flex:1; height: 0.5px; background: var(--border); }
+.link-row { display: flex; gap: 6px; margin-top: 8px; align-items: center; }
+.link-sel { flex: 1; font-size: 12px; padding: 6px 8px; border-radius: var(--radius-sm); border: 0.5px solid var(--border2); background: var(--bg3); color: var(--text); font-family: 'DM Sans', sans-serif; }
+.link-btn { padding: 6px 12px; border-radius: var(--radius-sm); border: 0.5px solid var(--border2); background: var(--bg3); color: var(--text2); font-size: 12px; cursor: pointer; white-space: nowrap; }
+.link-btn:active { background: var(--bg4); }
+
+/* Chat */
+#chat-view { display: none; flex-direction: column; position: absolute; inset: 0; }
+#chat-view.active { display: flex; }
+#chat-messages { flex: 1; overflow-y: auto; padding: 14px 16px; display: flex; flex-direction: column; gap: 10px; -webkit-overflow-scrolling: touch; }
+.bubble { max-width: 85%; padding: 10px 13px; border-radius: var(--radius); font-size: 14px; line-height: 1.5; }
+.bubble-user { background: var(--accent); color: #fff; align-self: flex-end; border-bottom-right-radius: 3px; }
+.bubble-bot { background: var(--bg2); color: var(--text); align-self: flex-start; border-bottom-left-radius: 3px; border: 0.5px solid var(--border); }
+.bubble-bot.thinking { opacity: .5; font-style: italic; font-size: 13px; }
+#chat-input-area { padding: 10px 16px; padding-bottom: calc(10px + var(--safe-bottom)); border-top: 0.5px solid var(--border); background: var(--bg); display: flex; gap: 8px; align-items: flex-end; }
+#chat-input { flex: 1; background: var(--bg2); border: 0.5px solid var(--border2); border-radius: var(--radius); padding: 10px 13px; font-size: 14px; color: var(--text); font-family: 'DM Sans', sans-serif; resize: none; max-height: 120px; line-height: 1.5; outline: none; }
+#chat-input::placeholder { color: var(--text3); }
+#send-btn { width: 40px; height: 40px; border-radius: 50%; background: var(--accent); border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: opacity .15s; }
+#send-btn:active { opacity: .8; }
+#send-btn i { font-size: 18px; color: #fff; }
+
+/* Resumen */
+.resumen-pad { padding: 14px 16px 100px; }
+.action-row { display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; }
+.action-btn { display: flex; align-items: center; gap: 6px; padding: 9px 14px; border-radius: var(--radius-sm); border: 0.5px solid var(--border2); background: var(--bg2); color: var(--text2); font-size: 13px; font-weight: 500; cursor: pointer; font-family: 'DM Sans', sans-serif; transition: .15s; }
+.action-btn:active { background: var(--bg3); }
+.action-btn i { font-size: 16px; }
+.summary-box { background: var(--bg2); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 14px; font-family: 'DM Mono', monospace; font-size: 12px; line-height: 1.8; color: var(--text2); white-space: pre-wrap; min-height: 200px; }
+.pa-box { margin-top: 14px; background: var(--bg2); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 14px; }
+.pa-box h4 { font-size: 12px; font-weight: 500; color: var(--text2); margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
+.pa-box p { font-size: 12px; color: var(--text3); line-height: 1.7; }
+.pa-box strong { color: var(--text2); }
+
+/* API key setup */
+#api-setup { position: fixed; inset: 0; background: var(--bg); z-index: 100; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 32px 24px; text-align: center; }
+#api-setup h2 { font-size: 20px; font-weight: 500; margin-bottom: 8px; }
+#api-setup p { font-size: 13px; color: var(--text2); line-height: 1.6; margin-bottom: 20px; }
+#api-key-input { width: 100%; padding: 12px 14px; border-radius: var(--radius); border: 0.5px solid var(--border2); background: var(--bg2); color: var(--text); font-family: 'DM Mono', monospace; font-size: 13px; outline: none; margin-bottom: 10px; }
+#api-save-btn { width: 100%; padding: 13px; border-radius: var(--radius); border: none; background: var(--accent); color: #fff; font-size: 15px; font-weight: 500; cursor: pointer; font-family: 'DM Sans', sans-serif; }
+.api-note { font-size: 11px; color: var(--text3); margin-top: 10px; line-height: 1.6; }
+</style>
+</head>
+<body>
+
+<div id="api-setup">
+  <div style="width:44px;height:44px;background:var(--accent);border-radius:12px;display:flex;align-items:center;justify-content:center;margin-bottom:20px;font-size:22px;font-weight:300;color:#fff">S</div>
+  <h2>Sur Gestión</h2>
+  <p>Para activar el asistente de IA necesitás tu clave de API de Anthropic. Se guarda solo en este dispositivo.</p>
+  <input id="api-key-input" type="password" placeholder="sk-ant-api03-...">
+  <button id="api-save-btn" onclick="saveApiKey()">Activar asistente</button>
+  <p class="api-note">Obtenés tu clave en <strong>console.anthropic.com</strong> → API Keys.<br>Costo estimado: menos de $1/mes con uso normal.</p>
+</div>
+
+<div id="app" style="display:none">
+  <div id="top-bar">
+    <div class="logo">S</div>
+    <h1>Sur Gestión</h1>
+    <span class="date-badge" id="today-label"></span>
+  </div>
+
+  <div id="content">
+
+    <!-- DASHBOARD -->
+    <div class="view active" id="view-dash">
+      <div class="stats-grid" id="stats-grid"></div>
+      <div class="chips" id="filter-chips">
+        <div class="chip active" data-f="all">Todos</div>
+        <div class="chip" data-f="own">Mis tareas</div>
+        <div class="chip" data-f="others">De otros</div>
+        <div class="chip" data-f="project">Proyectos</div>
+        <div class="chip" data-f="kpi">KPIs</div>
+        <div class="chip" data-f="done">Completados</div>
+      </div>
+      <div class="section-pad" id="items-container"></div>
+    </div>
+
+    <!-- AGENDA -->
+    <div class="view" id="view-agenda">
+      <div class="chips" id="agenda-chips" style="padding-top:14px">
+        <div class="chip active" data-ag="all">Todos</div>
+        <div class="chip" data-ag="today">Hoy</div>
+        <div class="chip" data-ag="tomorrow">Mañana</div>
+        <div class="chip" data-ag="week">Esta semana</div>
+      </div>
+      <div class="section-pad" id="events-container"></div>
+    </div>
+
+    <!-- RESUMEN -->
+    <div class="view" id="view-resumen">
+      <div class="resumen-pad">
+        <div class="action-row">
+          <button class="action-btn" onclick="genSummary('today')"><i class="ti ti-sun"></i> Hoy</button>
+          <button class="action-btn" onclick="genSummary('tomorrow')"><i class="ti ti-moon"></i> Mañana</button>
+          <button class="action-btn" onclick="copySum()"><i class="ti ti-copy"></i> Copiar</button>
+        </div>
+        <div class="summary-box" id="sum-box">Tocá "Hoy" o "Mañana" para generar el resumen.</div>
+        <div class="pa-box">
+          <h4><i class="ti ti-settings-automation" style="font-size:14px"></i> Power Automate</h4>
+          <p>
+            1. Trigger: <strong>Recurrencia</strong> → 21:00hs diario<br>
+            2. Acción: <strong>Enviar email (Outlook)</strong> o <strong>Mensaje en Teams</strong><br>
+            3. En el body: pegá el resumen generado como template<br>
+            4. Para datos dinámicos: guardar items en <strong>SharePoint List</strong> y leerlos desde el flujo
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- CHAT -->
+    <div class="view" id="chat-view">
+      <div id="chat-messages"></div>
+      <div id="chat-input-area">
+        <textarea id="chat-input" placeholder="Tarea, reunión, compromiso…" rows="1"></textarea>
+        <button id="send-btn"><i class="ti ti-arrow-up"></i></button>
+      </div>
+    </div>
+
+  </div>
+
+  <nav id="bottom-nav">
+    <button class="nav-item active" data-view="dash"><i class="ti ti-layout-dashboard"></i>Panel</button>
+    <button class="nav-item" data-view="agenda"><i class="ti ti-calendar-event"></i>Agenda</button>
+    <button class="nav-item" data-view="resumen"><i class="ti ti-send"></i>Resumen</button>
+    <button class="nav-item" data-view="chat"><i class="ti ti-message"></i>Chat IA</button>
+  </nav>
+</div>
+
+<script>
+const SK='sur_items_v1', EK='sur_events_v1', AK='sur_apikey';
+let items=[], events=[], activeFilter='all', activeAgFilter='all';
+
+const TODAY=new Date().toISOString().slice(0,10);
+const TOMORROW=(()=>{const d=new Date();d.setDate(d.getDate()+1);return d.toISOString().slice(0,10)})();
+const WEEK_END=(()=>{const d=new Date();d.setDate(d.getDate()+7);return d.toISOString().slice(0,10)})();
+
+function uid(){return '_'+Math.random().toString(36).slice(2,9)}
+function fmtD(d){if(!d)return'';const[y,m,dd]=d.split('-');return dd+'/'+m+'/'+y.slice(2)}
+function isOverdue(d){return d&&d<TODAY}
+function isToday(d){return d===TODAY}
+function isTomorrow(d){return d===TOMORROW}
+function isWeek(d){return d&&d>=TODAY&&d<=WEEK_END}
+
+function saveApiKey(){
+  const k=document.getElementById('api-key-input').value.trim();
+  if(!k||!k.startsWith('sk-')){ alert('Clave inválida. Debe comenzar con sk-'); return; }
+  localStorage.setItem(AK,k);
+  initApp();
+}
+
+function initApp(){
+  const k=localStorage.getItem(AK);
+  if(!k){ document.getElementById('api-setup').style.display='flex'; document.getElementById('app').style.display='none'; return; }
+  document.getElementById('api-setup').style.display='none';
+  document.getElementById('app').style.display='flex';
+  loadData();
+  setupNav();
+  setupFilters();
+  setupChat();
+  setDateLabel();
+  addBotMsg('Hola Diego. Contame qué seguimiento o reunión querés agregar.',false);
+}
+
+function setDateLabel(){
+  const d=new Date();
+  const days=['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+  const months=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+  document.getElementById('today-label').textContent=days[d.getDay()]+' '+d.getDate()+' '+months[d.getMonth()];
+}
+
+function loadData(){
+  try{items=JSON.parse(localStorage.getItem(SK)||'[]')}catch(e){items=[]}
+  try{events=JSON.parse(localStorage.getItem(EK)||'[]')}catch(e){events=[]}
+  if(!items.length) seedItems();
+  if(!events.length) seedEvents();
+  renderAll();
+}
+function save(){
+  localStorage.setItem(SK,JSON.stringify(items));
+  localStorage.setItem(EK,JSON.stringify(events));
+}
+function seedItems(){
+  items=[
+    {id:uid(),type:'own',title:'Revisar cierre mensual de sucursales',priority:'alta',due:TOMORROW,responsible:'',done:false},
+    {id:uid(),type:'others',title:'Informe KPIs — pendiente Área BI',priority:'alta',due:TOMORROW,responsible:'Área BI',done:false},
+    {id:uid(),type:'project',title:'Bot de ventas CDE — revisión alcance v1',priority:'media',due:WEEK_END,responsible:'',done:false},
+    {id:uid(),type:'kpi',title:'Tasa de rechazos semana actual',priority:'media',due:WEEK_END,responsible:'',done:false},
+  ];
+}
+function seedEvents(){
+  events=[
+    {id:uid(),title:'Reunión de directorio mensual',date:TOMORROW,time:'09:00',location:'Oficina central',linkedItems:[]},
+    {id:uid(),title:'Sync Área BI — KPIs Q2',date:WEEK_END,time:'11:00',location:'Teams',linkedItems:[]},
+  ];
+}
+
+function renderAll(){renderStats();renderItems();renderEvents()}
+
+function renderStats(){
+  const p=items.filter(i=>!i.done);
+  const ov=p.filter(i=>isOverdue(i.due)).length;
+  const tmw=p.filter(i=>isTomorrow(i.due)).length;
+  const evTmw=events.filter(e=>isTomorrow(e.date)).length;
+  document.getElementById('stats-grid').innerHTML=`
+    <div class="stat-card"><div class="stat-num accent">${p.length}</div><div class="stat-lbl">Pendientes</div></div>
+    <div class="stat-card"><div class="stat-num red">${ov}</div><div class="stat-lbl">Vencidos</div></div>
+    <div class="stat-card"><div class="stat-num amber">${tmw}</div><div class="stat-lbl">Vencen mañana</div></div>
+    <div class="stat-card"><div class="stat-num green">${evTmw}</div><div class="stat-lbl">Reuniones mañana</div></div>`;
+}
+
+function typeBadge(t){const m={own:['Mía','b-own'],others:['De otros','b-others'],project:['Proyecto','b-project'],kpi:['KPI','b-kpi']};const[l,c]=m[t]||['?',''];return`<span class="badge ${c}">${l}</span>`}
+function prioBadge(p,done){if(done)return`<span class="badge b-done">Listo</span>`;const m={alta:'b-alta',media:'b-media',baja:'b-baja'};return`<span class="badge ${m[p]||''}">${p}</span>`}
+
+function renderItems(){
+  let vis=activeFilter==='done'?items.filter(i=>i.done):activeFilter==='all'?items.filter(i=>!i.done):items.filter(i=>!i.done&&i.type===activeFilter);
+  vis=[...vis].sort((a,b)=>{const po={alta:0,media:1,baja:2};const pd=(po[a.priority]||1)-(po[b.priority]||1);if(pd)return pd;return(a.due||'z').localeCompare(b.due||'z')});
+  const el=document.getElementById('items-container');
+  if(!vis.length){el.innerHTML=`<div class="empty"><i class="ti ti-check"></i>Sin items en esta vista</div>`;return}
+  el.innerHTML=vis.map(it=>{
+    const linked=events.filter(e=>e.linkedItems&&e.linkedItems.includes(it.id));
+    const chips=linked.map(e=>`<span class="ev-chip"><i class="ti ti-calendar" style="font-size:10px"></i> ${e.title.slice(0,20)}${e.title.length>20?'…':''}</span>`).join('');
+    return`<div class="item${it.done?' done':''}">
+      <div class="item-title">${it.title}</div>
+      <div class="item-meta">
+        ${typeBadge(it.type)}${prioBadge(it.priority,it.done)}
+        ${it.responsible?`<span class="item-resp">${it.responsible}</span>`:''}
+        ${it.due?`<span class="item-date${!it.done&&isOverdue(it.due)?' overdue':''}">${fmtD(it.due)}${!it.done&&isOverdue(it.due)?' ⚠':''}</span>`:''}
+      </div>
+      ${chips?`<div class="linked-chips">${chips}</div>`:''}
+      <div class="check-circle${it.done?' done':''}" onclick="toggleDone('${it.id}')">
+        ${it.done?'<i class="ti ti-check" style="font-size:11px;color:var(--green)"></i>':''}
+      </div>
+      <div class="del-item" onclick="delItem('${it.id}')"><i class="ti ti-trash" style="font-size:12px"></i></div>
+    </div>`}).join('');
+}
+
+function renderEvents(){
+  let vis=activeAgFilter==='today'?events.filter(e=>isToday(e.date)):activeAgFilter==='tomorrow'?events.filter(e=>isTomorrow(e.date)):activeAgFilter==='week'?events.filter(e=>isWeek(e.date)):[...events];
+  vis.sort((a,b)=>a.date!==b.date?a.date.localeCompare(b.date):(a.time||'').localeCompare(b.time||''));
+  const el=document.getElementById('events-container');
+  if(!vis.length){el.innerHTML=`<div class="empty"><i class="ti ti-calendar-off"></i>Sin eventos en esta vista</div>`;return}
+  const pending=items.filter(i=>!i.done);
+  const opts=pending.map(i=>`<option value="${i.id}">${i.title.slice(0,38)}</option>`).join('');
+  let lastDate='';
+  el.innerHTML=vis.map(ev=>{
+    let sep='';
+    if(ev.date!==lastDate){lastDate=ev.date;const lbl=isToday(ev.date)?'Hoy':isTomorrow(ev.date)?'Mañana':fmtD(ev.date);sep=`<div class="day-sep">${lbl}</div>`}
+    const lp=(ev.linkedItems||[]).map(id=>pending.find(i=>i.id===id)).filter(Boolean);
+    const cls=isToday(ev.date)?'today-ev':isTomorrow(ev.date)?'tomorrow-ev':'';
+    const pb=lp.length?`<span class="pending-badge ${lp.some(i=>i.priority==='alta')?'pb-warn':'pb-ok'}">${lp.length} compromisos</span>`:'';
+    const rows=lp.map(i=>`<div class="pending-row"><span class="badge ${i.priority==='alta'?'b-alta':i.priority==='media'?'b-media':'b-baja'}" style="flex-shrink:0">${i.priority}</span>${i.title}</div>`).join('');
+    return`${sep}<div class="event-card ${cls}" id="ev-${ev.id}" onclick="toggleEv('${ev.id}')">
+      <div class="event-title">${ev.title}</div>
+      <div class="event-time"><i class="ti ti-clock" style="font-size:11px"></i> ${ev.time||'Sin hora'}${ev.location?' · '+ev.location:''}</div>
+      ${pb}
+      <div class="event-body">
+        ${rows||'<span style="font-size:12px;color:var(--text3)">Sin compromisos vinculados</span>'}
+        <div class="link-row">
+          <select class="link-sel" id="lsel-${ev.id}" onclick="event.stopPropagation()"><option value="">+ Vincular compromiso…</option>${opts}</select>
+          <button class="link-btn" onclick="event.stopPropagation();doLink('${ev.id}')">Vincular</button>
+        </div>
+      </div>
+    </div>`}).join('');
+}
+
+function toggleEv(id){document.getElementById('ev-'+id)?.classList.toggle('open')}
+function doLink(evId){
+  const sel=document.getElementById('lsel-'+evId);
+  const iid=sel?.value;
+  if(!iid)return;
+  const ev=events.find(e=>e.id===evId);
+  if(ev&&!(ev.linkedItems||[]).includes(iid)){ev.linkedItems.push(iid);save();renderAll()}
+}
+function toggleDone(id){const it=items.find(i=>i.id===id);if(it){it.done=!it.done;save();renderAll()}}
+function delItem(id){if(confirm('¿Eliminar este ítem?')){items=items.filter(i=>i.id!==id);save();renderAll()}}
+
+function setupNav(){
+  document.querySelectorAll('.nav-item').forEach(b=>{
+    b.addEventListener('click',()=>{
+      document.querySelectorAll('.nav-item').forEach(x=>x.classList.remove('active'));
+      document.querySelectorAll('.view').forEach(x=>x.classList.remove('active'));
+      b.classList.add('active');
+      document.getElementById('view-'+b.dataset.view).classList.add('active');
+    });
+  });
+}
+
+function setupFilters(){
+  document.querySelectorAll('[data-f]').forEach(c=>{
+    c.addEventListener('click',()=>{
+      document.querySelectorAll('[data-f]').forEach(x=>x.classList.remove('active'));
+      c.classList.add('active');activeFilter=c.dataset.f;renderItems();
+    });
+  });
+  document.querySelectorAll('[data-ag]').forEach(c=>{
+    c.addEventListener('click',()=>{
+      document.querySelectorAll('[data-ag]').forEach(x=>x.classList.remove('active'));
+      c.classList.add('active');activeAgFilter=c.dataset.ag;renderEvents();
+    });
+  });
+}
+
+function genSummary(when){
+  const tgt=when==='today'?TODAY:TOMORROW;
+  const lbl=when==='today'?'HOY '+fmtD(TODAY):'MAÑANA '+fmtD(TOMORROW);
+  const dayEvs=events.filter(e=>e.date===tgt).sort((a,b)=>(a.time||'').localeCompare(b.time||''));
+  const pend=items.filter(i=>!i.done);
+  const due=pend.filter(i=>i.due===tgt);
+  const ov=pend.filter(i=>isOverdue(i.due));
+  let t=`📋 RESUMEN ${lbl}\n${'─'.repeat(32)}\n`;
+  if(dayEvs.length){
+    t+=`\n🗓 AGENDA (${dayEvs.length} evento${dayEvs.length>1?'s':''})\n`;
+    dayEvs.forEach(e=>{
+      t+=`  • ${e.time||'S/H'} — ${e.title}${e.location?' ('+e.location+')':''}\n`;
+      const lp=(e.linkedItems||[]).map(id=>pend.find(i=>i.id===id)).filter(Boolean);
+      if(lp.length){t+=`    Compromisos:\n`;lp.forEach(i=>t+=`      ↳ [${i.priority.toUpperCase()}] ${i.title}\n`)}
+    });
+  } else t+=`\n🗓 Sin eventos agendados\n`;
+  if(due.length){t+=`\n⚠ VENCE ${when==='today'?'HOY':'MAÑANA'}\n`;due.forEach(i=>t+=`  • [${i.priority.toUpperCase()}] ${i.title}${i.responsible?' → '+i.responsible:''}\n`)}
+  if(ov.length&&when==='today'){t+=`\n🔴 VENCIDOS (${ov.length})\n`;ov.slice(0,5).forEach(i=>t+=`  • ${i.title} (${fmtD(i.due)})\n`)}
+  t+=`\n${'─'.repeat(32)}\nSur Comercial — Gestión personal`;
+  document.getElementById('sum-box').textContent=t;
+}
+function copySum(){navigator.clipboard?.writeText(document.getElementById('sum-box').textContent)}
+
+function setupChat(){
+  const inp=document.getElementById('chat-input');
+  document.getElementById('send-btn').addEventListener('click',sendMsg);
+  inp.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMsg()}});
+  inp.addEventListener('input',()=>{inp.style.height='auto';inp.style.height=inp.scrollHeight+'px'});
+}
+
+function addBotMsg(txt,thinking=false){
+  const el=document.getElementById('chat-messages');
+  const d=document.createElement('div');
+  d.className='bubble bubble-bot'+(thinking?' thinking':'');
+  d.textContent=txt;
+  el.appendChild(d);el.scrollTop=el.scrollHeight;
+  return d;
+}
+function addUserMsg(txt){
+  const el=document.getElementById('chat-messages');
+  const d=document.createElement('div');
+  d.className='bubble bubble-user';d.textContent=txt;
+  el.appendChild(d);el.scrollTop=el.scrollHeight;
+}
+
+async function sendMsg(){
+  const inp=document.getElementById('chat-input');
+  const txt=inp.value.trim();
+  if(!txt)return;
+  inp.value='';inp.style.height='auto';
+  addUserMsg(txt);
+  const bot=addBotMsg('Procesando…',true);
+  const key=localStorage.getItem(AK);
+  const sys=`Sos un asistente de agenda y seguimientos para Diego, GM de Sur Comercial Industrial, Paraguay. Hoy es ${TODAY}, mañana es ${TOMORROW}.
+Interpretá mensajes en español y devolvé SOLO JSON válido sin markdown:
+{"items":[{"title":"...","type":"own|others|project|kpi","priority":"alta|media|baja","due":"YYYY-MM-DD|null","responsible":""}],"events":[{"title":"...","date":"YYYY-MM-DD","time":"HH:MM|null","location":""}],"reply":"confirmación breve 1 oración"}
+Reglas: si es tarea/compromiso → items. Si es reunión/evento/cita → events. Puede ser ambos. Inferí prioridad. Arrays vacíos si no aplica.`;
+  try{
+    const res=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,system:sys,messages:[{role:'user',content:txt}]})
+    });
+    const data=await res.json();
+    const raw=data.content.filter(b=>b.type==='text').map(b=>b.text).join('');
+    const parsed=JSON.parse(raw.replace(/```json|```/g,'').trim());
+    (parsed.items||[]).forEach(it=>items.unshift({id:uid(),type:it.type||'own',title:it.title,priority:it.priority||'media',due:it.due||null,responsible:it.responsible||'',done:false}));
+    (parsed.events||[]).forEach(ev=>events.unshift({id:uid(),title:ev.title,date:ev.date||TOMORROW,time:ev.time||null,location:ev.location||'',linkedItems:[]}));
+    save();renderAll();
+    bot.className='bubble bubble-bot';
+    bot.textContent=parsed.reply||'Listo, guardado.';
+  }catch(e){
+    bot.className='bubble bubble-bot';
+    bot.textContent='No pude procesar. Revisá tu conexión o intentá de nuevo.';
+  }
+  document.getElementById('chat-messages').scrollTop=99999;
+}
+
+window.addEventListener('load',initApp);
+</script>
+</body>
+</html>
